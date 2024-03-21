@@ -140,24 +140,29 @@ const HeaderComponent = () => {
                 </Nav.Link>
               </LinkContainer>
             ) : userInfo.name && !userInfo.isAdmin ? (
-              <NavDropdown
-                title={`${userInfo.name} ${userInfo.lastName}`}
-                id="collasible-nav-dropdown"
-              >
-                <NavDropdown.Item
-                  eventKey="/user/my-orders"
-                  as={Link}
-                  to="/user/my-orders"
+              <>
+                <LinkContainer to="/user/pc-build">
+                  <Nav.Link>Xây dựng PC</Nav.Link>
+                </LinkContainer>
+                <NavDropdown
+                  title={`${userInfo.name} ${userInfo.lastName}`}
+                  id="collasible-nav-dropdown"
                 >
-                  Đơn đặt hàng
-                </NavDropdown.Item>
-                <NavDropdown.Item eventKey="/user" as={Link} to="/user">
-                  Hồ sơ
-                </NavDropdown.Item>
-                <NavDropdown.Item onClick={() => dispatch(logout())}>
-                  Đăng xuất
-                </NavDropdown.Item>
-              </NavDropdown>
+                  <NavDropdown.Item
+                    eventKey="/user/my-orders"
+                    as={Link}
+                    to="/user/my-orders"
+                  >
+                    Đơn đặt hàng
+                  </NavDropdown.Item>
+                  <NavDropdown.Item eventKey="/user" as={Link} to="/user">
+                    Hồ sơ
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => dispatch(logout())}>
+                    Đăng xuất
+                  </NavDropdown.Item>
+                </NavDropdown>
+              </>
             ) : (
               <>
                 <LinkContainer to="/login">

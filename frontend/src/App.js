@@ -34,6 +34,7 @@ import AdminOrderDetailsPage from "./page/admin/AdminOrderDetailsPage";
 import AdminChatsPage from "./page/admin/AdminChatsPage";
 import AdminAnalyticsPage from "./page/admin/AdminAnalyticsPage";
 import ScrollToTop from "./utils/ScrollToTop";
+import UserPcBuildPage from "./page/user/UserPcBuildPage";
 
 function App() {
   return (
@@ -90,6 +91,7 @@ function App() {
             path="/user/order-details/:id"
             element={<UserOrderDetailsPage />}
           />
+          <Route path="/user/pc-build" element={<UserPcBuildPage />} />
         </Route>
 
         {/* admin protected routes: */}
