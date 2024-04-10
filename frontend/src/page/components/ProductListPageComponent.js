@@ -1,4 +1,6 @@
+import React, { useEffect, useState } from "react";
 import { Row, Col, Container, ListGroup, Button } from "react-bootstrap";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import PaginationComponent from "../../component/PaginationComponent";
 import ProductForListComponent from "../../component/ProductForListComponent";
 import SortOptionsComponent from "../../component/SortOptionsComponent";
@@ -7,18 +9,18 @@ import RatingFilterComponent from "../../component/filterQueryResultOptions/Rati
 import CategoryFilterComponent from "../../component/filterQueryResultOptions/CategoryFilterComponent";
 import AttributesFilterComponent from "../../component/filterQueryResultOptions/AttributesFilterComponent";
 
-import { useEffect, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-
 const ProductListPageComponent = ({ getProducts, categories }) => {
+  const { categoryName, pageNumParam, searchQuery } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [attrsFilter, setAttrsFilter] = useState([]); // collect category attributes from db and show on the webpage
-  const [attrsFromFilter, setAttrsFromFilter] = useState([]); // collect user filters for category attributes
+  const [attrsFilter, setAttrsFilter] = useState([]);
+  const [attrsFromFilter, setAttrsFromFilter] = useState([]);
   const [showResetFiltersButton, setShowResetFiltersButton] = useState(false);
-
-  const [filters, setFilters] = useState({}); // collect all filters
+  const [filters, setFilters] = useState({});
   const [price, setPrice] = useState(25000000);
   const [ratingsFromFilter, setRatingsFromFilter] = useState({});
   const [categoriesFromFilter, setCategoriesFromFilter] = useState({});
@@ -26,21 +28,17 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   const [paginationLinksNumber, setPaginationLinksNumber] = useState(null);
   const [pageNum, setPageNum] = useState(null);
 
-  const { categoryName } = useParams() || "";
-  const { pageNumParam } = useParams() || 1;
-  const { searchQuery } = useParams() || "";
-  const location = useLocation();
-  const navigate = useNavigate();
-
   useEffect(() => {
     if (categoryName) {
-      let categoryAllData = categories.find(
+      const categoryAllData = categories.find(
         (item) => item.name === categoryName.replaceAll(",", "/")
       );
       if (categoryAllData) {
-        let mainCategory = categoryAllData.name.split("/")[0];
-        let index = categories.findIndex((item) => item.name === mainCategory);
-        setAttrsFilter(categories[index].attrs);
+        const mainCategory = categoryAllData.name.split("/")[0];
+        const index = categories.findIndex(
+          (item) => item.name === mainCategory
+        );
+        setAttrsFilter(categories[index]?.attrs || []);
       }
     } else {
       setAttrsFilter([]);
@@ -50,16 +48,18 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   useEffect(() => {
     if (Object.entries(categoriesFromFilter).length > 0) {
       setAttrsFilter([]);
-      var cat = [];
-      var count;
+      const cat = [];
       Object.entries(categoriesFromFilter).forEach(([category, checked]) => {
         if (checked) {
-          var name = category.split("/")[0];
+          const name = category.split("/")[0];
           cat.push(name);
-          count = cat.filter((x) => x === name).length;
+          const count = cat.filter((x) => x === name).length;
           if (count === 1) {
-            var index = categories.findIndex((item) => item.name === name);
-            setAttrsFilter((attrs) => [...attrs, ...categories[index].attrs]);
+            const index = categories.findIndex((item) => item.name === name);
+            setAttrsFilter((attrs) => [
+              ...attrs,
+              ...(categories[index]?.attrs || []),
+            ]);
           }
         }
       });
@@ -74,8 +74,8 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
         setPageNum(products.pageNum);
         setLoading(false);
       })
-      .catch((er) => {
-        console.log(er);
+      .catch((error) => {
+        console.error(error);
         setError(true);
       });
   }, [categoryName, pageNumParam, searchQuery, filters, sortOption]);
@@ -84,7 +84,7 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
     navigate(location.pathname.replace(/\/[0-9]+$/, ""));
     setShowResetFiltersButton(true);
     setFilters({
-      price: price,
+      price,
       rating: ratingsFromFilter,
       category: categoriesFromFilter,
       attrs: attrsFromFilter,
@@ -158,14 +158,14 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
               />
             ))
           )}
-          {paginationLinksNumber > 1 ? (
+          {paginationLinksNumber > 1 && (
             <PaginationComponent
               categoryName={categoryName}
               searchQuery={searchQuery}
               paginationLinksNumber={paginationLinksNumber}
               pageNum={pageNum}
             />
-          ) : null}
+          )}
         </Col>
       </Row>
     </Container>
