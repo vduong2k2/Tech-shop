@@ -1,7 +1,39 @@
+import React from "react";
 import { Form } from "react-bootstrap";
 
 const AttributesFilterComponent = ({ attrsFilter, setAttrsFromFilter }) => {
-  //   console.log(attrsFilter);
+  const handleCheckboxChange = (filter, valueForKey, isChecked) => {
+    setAttrsFromFilter((filters) => {
+      let updatedFilters = [...filters];
+      const index = updatedFilters.findIndex((item) => item.key === filter.key);
+
+      if (index === -1 && isChecked) {
+        // Add new filter key
+        updatedFilters.push({ key: filter.key, values: [valueForKey] });
+      } else if (index !== -1) {
+        if (isChecked) {
+          // Add new value to existing filter key
+          updatedFilters[index].values.push(valueForKey);
+          updatedFilters[index].values = [
+            ...new Set(updatedFilters[index].values),
+          ];
+        } else {
+          // Remove value from existing filter key
+          updatedFilters[index].values = updatedFilters[index].values.filter(
+            (val) => val !== valueForKey
+          );
+
+          // Remove filter if no value is selected
+          if (updatedFilters[index].values.length === 0) {
+            updatedFilters.splice(index, 1);
+          }
+        }
+      }
+
+      return updatedFilters;
+    });
+  };
+
   return (
     <>
       {attrsFilter &&
@@ -16,46 +48,9 @@ const AttributesFilterComponent = ({ attrsFilter, setAttrsFromFilter }) => {
                 key={idx2}
                 type="checkbox"
                 label={valueForKey}
-                onChange={(e) => {
-                  setAttrsFromFilter((filters) => {
-                    if (filters.length === 0) {
-                      return [{ key: filter.key, values: [valueForKey] }];
-                    }
-
-                    let index = filters.findIndex(
-                      (item) => item.key === filter.key
-                    );
-                    if (index === -1) {
-                      // if not found (if clicked key is not inside filters)
-                      return [
-                        ...filters,
-                        { key: filter.key, values: [valueForKey] },
-                      ];
-                    }
-
-                    // if clicked key is inside filters and checked
-                    if (e.target.checked) {
-                      filters[index].values.push(valueForKey);
-                      let unique = [...new Set(filters[index].values)];
-                      filters[index].values = unique;
-                      return [...filters];
-                    }
-
-                    // if clicked key is inside filters and unchecked
-                    let valuesWithoutUnChecked = filters[index].values.filter(
-                      (val) => val !== valueForKey
-                    );
-                    filters[index].values = valuesWithoutUnChecked;
-                    if (valuesWithoutUnChecked.length > 0) {
-                      return [...filters];
-                    } else {
-                      let filtersWithoutOneKey = filters.filter(
-                        (item) => item.key !== filter.key
-                      );
-                      return [...filtersWithoutOneKey];
-                    }
-                  });
-                }}
+                onChange={(e) =>
+                  handleCheckboxChange(filter, valueForKey, e.target.checked)
+                }
               />
             ))}
           </div>
