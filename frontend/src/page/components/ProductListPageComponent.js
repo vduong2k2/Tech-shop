@@ -18,13 +18,13 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [attrsFilter, setAttrsFilter] = useState([]);
-  const [attrsFromFilter, setAttrsFromFilter] = useState([]);
   const [showResetFiltersButton, setShowResetFiltersButton] = useState(false);
-  const [filters, setFilters] = useState({});
-  const [price, setPrice] = useState(25000000);
-  const [ratingsFromFilter, setRatingsFromFilter] = useState({});
-  const [categoriesFromFilter, setCategoriesFromFilter] = useState({});
-  const [sortOption, setSortOption] = useState("");
+  const [filters, setFilters] = useState({
+    price: 25000000,
+    rating: {},
+    category: {},
+    attrs: [],
+  });
   const [paginationLinksNumber, setPaginationLinksNumber] = useState(null);
   const [pageNum, setPageNum] = useState(null);
 
@@ -46,28 +46,20 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   }, [categoryName, categories]);
 
   useEffect(() => {
-    if (Object.entries(categoriesFromFilter).length > 0) {
-      setAttrsFilter([]);
-      const cat = [];
-      Object.entries(categoriesFromFilter).forEach(([category, checked]) => {
-        if (checked) {
-          const name = category.split("/")[0];
-          cat.push(name);
-          const count = cat.filter((x) => x === name).length;
-          if (count === 1) {
-            const index = categories.findIndex((item) => item.name === name);
-            setAttrsFilter((attrs) => [
-              ...attrs,
-              ...(categories[index]?.attrs || []),
-            ]);
-          }
-        }
-      });
-    }
-  }, [categoriesFromFilter, categories]);
+    const selectedCategories = Object.keys(filters.category).filter(
+      (key) => filters.category[key]
+    );
 
-  useEffect(() => {
-    getProducts(categoryName, pageNumParam, searchQuery, filters, sortOption)
+    const selectedAttrs = filters.attrs;
+
+    getProducts(
+      categoryName,
+      pageNumParam,
+      searchQuery,
+      filters,
+      selectedCategories,
+      selectedAttrs
+    )
       .then((products) => {
         setProducts(products.products);
         setPaginationLinksNumber(products.paginationLinksNumber);
@@ -78,22 +70,21 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
         console.error(error);
         setError(true);
       });
-  }, [categoryName, pageNumParam, searchQuery, filters, sortOption]);
+  }, [categoryName, pageNumParam, searchQuery, filters]);
 
   const handleFilters = () => {
     navigate(location.pathname.replace(/\/[0-9]+$/, ""));
     setShowResetFiltersButton(true);
-    setFilters({
-      price,
-      rating: ratingsFromFilter,
-      category: categoriesFromFilter,
-      attrs: attrsFromFilter,
-    });
   };
 
   const resetFilters = () => {
     setShowResetFiltersButton(false);
-    setFilters({});
+    setFilters({
+      price: 25000000,
+      rating: {},
+      category: {},
+      attrs: [],
+    });
     window.location.href = "/product-list";
   };
 
@@ -103,28 +94,37 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
         <Col md={3}>
           <ListGroup variant="flush">
             <ListGroup.Item className="mb-3 mt-3">
-              <SortOptionsComponent setSortOption={setSortOption} />
+              <SortOptionsComponent />
             </ListGroup.Item>
             <ListGroup.Item>
               FILTER: <br />
-              <PriceFilterComponent price={price} setPrice={setPrice} />
+              <PriceFilterComponent
+                price={filters.price}
+                setPrice={(price) => setFilters({ ...filters, price })}
+              />
             </ListGroup.Item>
             <ListGroup.Item>
               <RatingFilterComponent
-                setRatingsFromFilter={setRatingsFromFilter}
+                setRatingsFromFilter={(ratings) =>
+                  setFilters({ ...filters, rating: ratings })
+                }
               />
             </ListGroup.Item>
             {!location.pathname.match(/\/category/) && (
               <ListGroup.Item>
                 <CategoryFilterComponent
-                  setCategoriesFromFilter={setCategoriesFromFilter}
+                  setCategoriesFromFilter={(categories) =>
+                    setFilters({ ...filters, category: categories })
+                  }
                 />
               </ListGroup.Item>
             )}
             <ListGroup.Item>
               <AttributesFilterComponent
                 attrsFilter={attrsFilter}
-                setAttrsFromFilter={setAttrsFromFilter}
+                setAttrsFromFilter={(attrs) =>
+                  setFilters({ ...filters, attrs: attrs })
+                }
               />
             </ListGroup.Item>
             <ListGroup.Item>
